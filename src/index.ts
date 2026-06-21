@@ -1,6 +1,6 @@
 import express, { Request, Response, NextFunction } from 'express';
 import { exec } from 'child_process';
-import { readFileSync } from 'fs';
+import { readFileSync, existsSync } from 'fs';
 import { join } from 'path';
 
 interface Config {
@@ -25,18 +25,105 @@ interface ExecuteResponse {
   exitCode?: number | null;
 }
 
-function loadConfig(): Config {
-  const configPath = join(__dirname, '..', 'config.json');
-  const raw = readFileSync(configPath, 'utf-8');
-  return JSON.parse(raw);
+interface CliArgs {
+  port?: number;
+  apiKeys?: string[];
+  origins?: string[];
+  timeout?: number;
+  help?: boolean;
 }
 
-let config = loadConfig();
+function parseArgs(): CliArgs {
+  const args = process.argv.slice(2);
+  const result: CliArgs = {};
 
-// Reload config on SIGHUP
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i];
+
+    if (arg === '--help' || arg === '-h') {
+      result.help = true;
+    } else if (arg === '--port' || arg === '-p') {
+      const val = parseInt(args[++i], 10);
+      if (!isNaN(val)) result.port = val;
+    } else if (arg === '--api-key' || arg === '-k') {
+      result.apiKeys = result.apiKeys || [];
+      result.apiKeys.push(args[++i]);
+    } else if (arg === '--origin' || arg === '-o') {
+      result.origins = result.origins || [];
+      result.origins.push(args[++i]);
+    } else if (arg === '--timeout' || arg === '-t') {
+      const val = parseInt(args[++i], 10);
+      if (!isNaN(val)) result.timeout = val;
+    }
+  }
+
+  return result;
+}
+
+function printHelp(): void {
+  console.log(`
+gh-worker - Code execution worker
+
+Usage: node dist/index.js [options]
+
+Options:
+  -p, --port <port>       Server port (default: 8080)
+  -k, --api-key <key>     API key (can use multiple times)
+  -o, --origin <origin>   Allowed origin (can use multiple times)
+  -t, --timeout <ms>      Execution timeout in ms (default: 30000)
+  -h, --help              Show this help
+
+Examples:
+  node dist/index.js --port 3000 --api-key mykey123
+  node dist/index.js -p 8080 -k key1 -k key2 -o http://localhost:3000
+`);
+}
+
+function loadConfig(): Config {
+  const configPath = join(__dirname, '..', 'config.json');
+  if (existsSync(configPath)) {
+    const raw = readFileSync(configPath, 'utf-8');
+    return JSON.parse(raw);
+  }
+  // Default config if file missing
+  return {
+    apiKeys: [],
+    allowedOrigins: ['*'],
+    executionTimeoutMs: 30000,
+    port: 8080
+  };
+}
+
+function buildConfig(): Config {
+  const fileConfig = loadConfig();
+  const cliArgs = parseArgs();
+
+  if (cliArgs.help) {
+    printHelp();
+    process.exit(0);
+  }
+
+  // CLI args override file config
+  return {
+    apiKeys: cliArgs.apiKeys?.length ? cliArgs.apiKeys : fileConfig.apiKeys,
+    allowedOrigins: cliArgs.origins?.length ? cliArgs.origins : fileConfig.allowedOrigins,
+    executionTimeoutMs: cliArgs.timeout ?? fileConfig.executionTimeoutMs,
+    port: cliArgs.port ?? fileConfig.port
+  };
+}
+
+let config = buildConfig();
+
+// Validate config
+if (config.apiKeys.length === 0) {
+  console.error('Error: No API keys configured. Use --api-key or config.json');
+  process.exit(1);
+}
+
+// Reload config on SIGHUP (CLI args still override)
 process.on('SIGHUP', () => {
   console.log('Reloading config...');
-  config = loadConfig();
+  config = buildConfig();
   console.log('Config reloaded');
 });
 
