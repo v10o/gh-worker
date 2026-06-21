@@ -1,0 +1,12 @@
+{
+  "apiKeys": [
+    "change-me-key-1",
+    "change-me-key-2"
+  ],
+  "allowedOrigins": [
+    "http://localhost:3000",
+    "https://yourdomain.com"
+  ],
+  "executionTimeoutMs": 30000,
+  "port": 8080
+}
