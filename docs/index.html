@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>gh-worker — Documentation</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0f1117;
+    --bg-soft:#161922;
+    --card:#1c2030;
+    --border:#2a2f3e;
+    --text:#e6e9f0;
+    --muted:#9aa3b2;
+    --primary:#4A90E2;
+    --accent:#FF6F61;
+    --green:#4ec9b0;
+    --code-bg:#0d0f14;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family:Inter,-apple-system,BlinkMacSystemFont,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    line-height:1.6;
+    font-size:16px;
+  }
+  code,pre{font-family:'JetBrains Mono',Consolas,monospace}
+  a{color:var(--primary);text-decoration:none}
+  a:hover{text-decoration:underline}
+
+  /* layout */
+  .layout{display:flex;min-height:100vh}
+  .sidebar{
+    width:260px;
+    background:var(--bg-soft);
+    border-right:1px solid var(--border);
+    padding:1.5rem 1rem;
+    position:sticky;top:0;height:100vh;overflow-y:auto;
+    flex-shrink:0;
+  }
+  .sidebar h2{font-size:.8rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:1.5rem 0 .5rem .5rem}
+  .sidebar a{
+    display:block;color:var(--muted);padding:.35rem .5rem;border-radius:6px;font-size:.9rem;
+  }
+  .sidebar a:hover{background:var(--card);color:var(--text);text-decoration:none}
+  .sidebar a.active{color:var(--primary);background:var(--card)}
+  .main{flex:1;min-width:0;padding:2.5rem 3rem;max-width:960px}
+
+  /* hero */
+  .hero{
+    background:linear-gradient(135deg,#1c2030 0%,#161922 100%);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:2.5rem;
+    margin-bottom:2rem;
+  }
+  .hero h1{margin:0 0 .5rem;font-size:2.2rem;font-weight:700}
+  .hero .tag{color:var(--primary);font-weight:600;font-size:1rem;margin-bottom:1rem;display:inline-block}
+  .hero p{color:var(--muted);max-width:60ch;margin:0}
+  .badges{margin-top:1.2rem;display:flex;gap:.5rem;flex-wrap:wrap}
+  .badge{
+    font-size:.75rem;font-weight:500;padding:.25rem .6rem;border-radius:20px;
+    background:var(--card);border:1px solid var(--border);color:var(--muted);
+  }
+
+  /* sections */
+  section{margin-bottom:2.5rem;scroll-margin-top:1rem}
+  h2{font-size:1.5rem;font-weight:600;margin:0 0 1rem;padding-bottom:.5rem;border-bottom:1px solid var(--border)}
+  h3{font-size:1.15rem;font-weight:600;margin:1.5rem 0 .75rem;color:var(--text)}
+  h4{font-size:1rem;font-weight:600;margin:1.2rem 0 .5rem;color:var(--primary)}
+  p{margin:.6rem 0}
+  ul,ol{padding-left:1.3rem}
+  li{margin:.35rem 0}
+
+  /* code */
+  pre{
+    background:var(--code-bg);
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:1rem 1.2rem;
+    overflow-x:auto;
+    font-size:.85rem;
+    line-height:1.5;
+    margin:1rem 0;
+  }
+  code{color:var(--green)}
+  pre code{color:var(--text)}
+  :not(pre)>code{
+    background:var(--code-bg);padding:.15rem .4rem;border-radius:4px;font-size:.85em;
+    border:1px solid var(--border);
+  }
+
+  /* tables */
+  table{width:100%;border-collapse:collapse;margin:1rem 0;font-size:.9rem}
+  th,td{padding:.6rem .8rem;text-align:left;border-bottom:1px solid var(--border)}
+  th{color:var(--muted);font-weight:600;font-size:.8rem;text-transform:uppercase;letter-spacing:.05em}
+  td code{font-size:.82em}
+
+  /* callouts */
+  .callout{
+    border-left:3px solid var(--primary);
+    background:var(--card);
+    padding:1rem 1.2rem;
+    border-radius:0 8px 8px 0;
+    margin:1.2rem 0;
+  }
+  .callout.warn{border-left-color:var(--accent)}
+  .callout.warn strong{color:var(--accent)}
+  .callout strong{color:var(--primary)}
+
+  /* cards */
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;margin:1rem 0}
+  .card{
+    background:var(--card);border:1px solid var(--border);border-radius:10px;padding:1.2rem;
+  }
+  .card h4{margin:0 0 .4rem}
+  .card p{margin:0;font-size:.9rem;color:var(--muted)}
+
+  /* tabs */
+  .tabs{margin:1rem 0}
+  .tab-headers{display:flex;gap:.25rem;border-bottom:1px solid var(--border);flex-wrap:wrap}
+  .tab-headers button{
+    background:none;border:none;color:var(--muted);padding:.6rem 1rem;cursor:pointer;
+    font-family:inherit;font-size:.85rem;font-weight:500;border-bottom:2px solid transparent;
+  }
+  .tab-headers button.active{color:var(--primary);border-bottom-color:var(--primary)}
+  .tab-panel{display:none}
+  .tab-panel.active{display:block}
+
+  /* response samples */
+  .resp{
+    background:var(--code-bg);border:1px solid var(--border);border-radius:8px;
+    padding:1rem 1.2rem;margin:1rem 0;font-size:.85rem;
+  }
+  .resp .label{color:var(--muted);font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.4rem}
+
+  /* footer */
+  .footer{
+    border-top:1px solid var(--border);
+    margin-top:3rem;padding:2rem 0 1rem;
+    color:var(--muted);font-size:.85rem;
+  }
+  .footer .row{
+    display:flex;justify-content:space-between;align-items:center;
+    flex-wrap:wrap;gap:1rem;
+  }
+  .footer .copy{font-weight:500;color:var(--text)}
+  .footer .links{display:flex;gap:1rem}
+  .footer .links a{color:var(--muted)}
+  .footer .links a:hover{color:var(--primary)}
+  .footer .meta{margin-top:.8rem;font-size:.78rem;color:var(--muted)}
+
+  /* sidebar footer */
+  .sidebar-footer{
+    margin-top:auto;padding-top:1rem;border-top:1px solid var(--border);
+    font-size:.75rem;color:var(--muted);
+  }
+  .sidebar-footer .copy{color:var(--text);font-weight:500;margin-bottom:.2rem}
+
+  /* mobile */
+  @media(max-width:860px){
+    .sidebar{display:none}
+    .main{padding:1.5rem}
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <a href="#overview" class="active">Overview</a>
+    <a href="#features">Features</a>
+    <a href="#quickstart">Quick Start</a>
+    <a href="#config">Configuration</a>
+    <a href="#cli">CLI Flags</a>
+    <a href="#endpoints">Endpoints</a>
+    <a href="#execute">POST /execute</a>
+    <a href="#health">GET /health</a>
+    <a href="#integrate">Integration</a>
+    <a href="#security">Security</a>
+    <a href="#examples">Full Examples</a>
+    <a href="#notes">Notes</a>
+    <div class="sidebar-footer">
+      <div class="copy">© 2026 gh-worker</div>
+      <div>MIT License</div>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <div class="hero">
+      <h1>gh-worker</h1>
+      <span class="tag">A lightweight HTTP worker that executes shell commands on demand</span>
+      <p>A single-file Express 5 service exposing a REST endpoint to run shell commands remotely, with API-key auth, CORS control, timeouts, and chained execution. Built for CI/CD hooks, automation, and remote tooling.</p>
+      <div class="badges">
+        <span class="badge">Express 5</span>
+        <span class="badge">TypeScript</span>
+        <span class="badge">Node.js</span>
+        <span class="badge">Single-file</span>
+        <span class="badge">No deps beyond express</span>
+        <span class="badge">© 2026 MIT License</span>
+      </div>
+    </div>
+
+    <!-- OVERVIEW -->
+    <section id="overview">
+      <h2>Overview</h2>
+      <p><code>gh-worker</code> is a minimal HTTP worker that runs shell commands submitted through a JSON API. The entire server lives in <code>src/index.ts</code> — there is no package boundary, no database, no build pipeline beyond <code>tsc</code>.</p>
+      <p>It is designed to sit behind a webhook or automation pipeline: a CI job, a GitHub Action, a chat bot, or any client that needs to trigger shell commands on a host. The worker authenticates each request with an API key, runs the command via <code>child_process.exec</code>, and returns stdout/stderr/exit code as JSON.</p>
+
+      <div class="grid">
+        <div class="card">
+          <h4>Single command</h4>
+          <p>Send <code>{ command, args }</code> and the worker runs one command with escaped arguments.</p>
+        </div>
+        <div class="card">
+          <h4>Chained commands</h4>
+          <p>Send <code>{ commands: [...] }</code> and they run with <code>&amp;&amp;</code> — fail-fast.</p>
+        </div>
+        <div class="card">
+          <h4>Working directory</h4>
+          <p>Optional <code>cwd</code> sets where the command runs.</p>
+        </div>
+        <div class="card">
+          <h4>Timeouts</h4>
+          <p>Every command is killed after <code>executionTimeoutMs</code> (default 30s).</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- FEATURES -->
+    <section id="features">
+      <h2>Features</h2>
+      <ul>
+        <li><strong>API-key authentication</strong> — every <code>/execute</code> request requires an <code>X-API-Key</code> header matching a configured key.</li>
+        <li><strong>CORS allowlist</strong> — only origins listed in <code>allowedOrigins</code> get CORS headers; otherwise requests still work but without browser CORS permission.</li>
+        <li><strong>Config from file or CLI</strong> — <code>config.json</code> at the repo root, overridable by CLI flags. <code>SIGHUP</code> reloads config without a restart.</li>
+        <li><strong>Two request modes</strong> — single command with auto-escaped args, or a chain of commands joined with <code>&amp;&amp;</code>.</li>
+        <li><strong>Structured JSON responses</strong> — <code>success</code>, <code>stdout</code>, <code>stderr</code>, <code>error</code>, <code>exitCode</code> on every reply.</li>
+        <li><strong>Health endpoint</strong> — <code>GET /health</code> returns <code>{ status: "ok" }</code> for load balancers and uptime checks.</li>
+        <li><strong>Zero external runtime deps</strong> — only <code>express</code>.</li>
+      </ul>
+    </section>
+
+    <!-- QUICKSTART -->
+    <section id="quickstart">
+      <h2>Quick Start</h2>
+      <h3>1. Install dependencies</h3>
+      <pre><code>npm install</code></pre>
+
+      <h3>2. Configure API keys</h3>
+      <p>Edit <code>config.json</code> in the repo root and replace the placeholder keys:</p>
+      <pre><code>{
+  "apiKeys": [
+    "your-secret-key-1"
+  ],
+  "allowedOrigins": [
+    "http://localhost:3000"
+  ],
+  "executionTimeoutMs": 30000,
+  "port": 8080
+}</code></pre>
+      <div class="callout warn">
+        <strong>Required:</strong> The server exits with code 1 if zero API keys are configured. You must set at least one key via <code>config.json</code> or the <code>--api-key</code> flag.
+      </div>
+
+      <h3>3. Run the server</h3>
+      <p>Development (with hot TypeScript via ts-node):</p>
+      <pre><code>npm run dev</code></pre>
+      <p>Production (compile first, then run):</p>
+      <pre><code>npm run build
+npm start</code></pre>
+      <p>You should see:</p>
+      <pre><code>Worker running on port 8080
+Timeout: 30000ms
+Allowed origins: http://localhost:3000</code></pre>
+
+      <h3>4. Test it</h3>
+      <pre><code>curl http://localhost:8080/execute \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: your-secret-key-1" \
+  -d '{"command":"echo","args":["hello world"]}'</code></pre>
+      <p>Response:</p>
+      <pre><code>{
+  "success": true,
+  "stdout": "hello world\n",
+  "stderr": "",
+  "exitCode": 0
+}</code></pre>
+    </section>
+
+    <!-- CONFIG -->
+    <section id="config">
+      <h2>Configuration</h2>
+      <p>Config is loaded from <code>config.json</code> at the repo root (resolved relative to <code>__dirname</code>, i.e. next to the running JS file). CLI flags override file values. If the file is missing, defaults apply — except <code>apiKeys</code>, which defaults to <code>[]</code> and causes the server to exit.</p>
+
+      <table>
+        <thead>
+          <tr><th>Field</th><th>Type</th><th>Default (no file)</th><th>Description</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>apiKeys</code></td><td><code>string[]</code></td><td><code>[]</code> ⚠️</td><td>Keys accepted in the <code>X-API-Key</code> header. Empty array = server won't start.</td></tr>
+          <tr><td><code>allowedOrigins</code></td><td><code>string[]</code></td><td><code>["*"]</code></td><td>Origins that receive CORS headers. Only listed origins get <code>Access-Control-Allow-Origin</code>.</td></tr>
+          <tr><td><code>executionTimeoutMs</code></td><td><code>number</code></td><td><code>30000</code></td><td>Hard timeout per command in milliseconds.</td></tr>
+          <tr><td><code>port</code></td><td><code>number</code></td><td><code>8080</code></td><td>HTTP listen port.</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout">
+        <strong>Live reload:</strong> Send <code>SIGHUP</code> to the process to reload <code>config.json</code> without restarting. CLI flags passed at startup still take precedence over the reloaded file values.
+        <pre><code>kill -HUP &lt;pid&gt;</code></pre>
+      </div>
+    </section>
+
+    <!-- CLI -->
+    <section id="cli">
+      <h2>CLI Flags</h2>
+      <p>All flags are optional and override <code>config.json</code>.</p>
+      <table>
+        <thead><tr><th>Flag</th><th>Short</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>--port &lt;port&gt;</code></td><td><code>-p</code></td><td>Server port (default 8080)</td></tr>
+          <tr><td><code>--api-key &lt;key&gt;</code></td><td><code>-k</code></td><td>Add an API key. Repeatable: <code>-k a -k b</code> adds both.</td></tr>
+          <tr><td><code>--origin &lt;origin&gt;</code></td><td><code>-o</code></td><td>Allowed CORS origin. Repeatable.</td></tr>
+          <tr><td><code>--timeout &lt;ms&gt;</code></td><td><code>-t</code></td><td>Execution timeout in milliseconds (default 30000)</td></tr>
+          <tr><td><code>--help</code></td><td><code>-h</code></td><td>Show help and exit</td></tr>
+        </tbody>
+      </table>
+      <pre><code>node dist/index.js -p 3000 -k mykey123 -o http://localhost:3000 -t 60000</code></pre>
+    </section>
+
+    <!-- ENDPOINTS -->
+    <section id="endpoints">
+      <h2>Endpoints</h2>
+      <table>
+        <thead><tr><th>Method</th><th>Path</th><th>Auth</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr><td><code>POST</code></td><td><code>/execute</code></td><td>Yes</td><td>Run one or more shell commands</td></tr>
+          <tr><td><code>GET</code></td><td><code>/health</code></td><td>No</td><td>Health check for uptime monitoring</td></tr>
+          <tr><td><code>OPTIONS</code></td><td>any</td><td>No</td><td>CORS preflight (returns 204)</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- EXECUTE -->
+    <section id="execute">
+      <h2>POST /execute</h2>
+      <p>Runs shell commands and returns the result as JSON. Requires the <code>X-API-Key</code> header.</p>
+
+      <h3>Request body</h3>
+      <p>Two modes — send either <code>command</code> or <code>commands</code>:</p>
+
+      <h4>Mode 1 — Single command</h4>
+      <pre><code>{
+  "command": "echo",
+  "args": ["hello world", "foo bar"],
+  "cwd": "/tmp"
+}</code></pre>
+      <p>Each arg is single-quote-escaped and appended to the command. The above becomes:</p>
+      <pre><code>echo 'hello world' 'foo bar'</code></pre>
+
+      <h4>Mode 2 — Chained commands</h4>
+      <pre><code>{
+  "commands": [
+    "git pull",
+    "npm install",
+    "npm run build"
+  ],
+  "cwd": "/home/user/myapp"
+}</code></pre>
+      <p>Commands are joined with <code>&amp;&amp;</code> (fail-fast — if one fails, the rest don't run):</p>
+      <pre><code>git pull &amp;&amp; npm install &amp;&amp; npm run build</code></pre>
+
+      <h3>Headers</h3>
+      <table>
+        <thead><tr><th>Header</th><th>Required</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>Content-Type</code></td><td>Yes</td><td><code>application/json</code></td></tr>
+          <tr><td><code>X-API-Key</code></td><td>Yes</td><td>Must match a configured key</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Response</h3>
+      <div class="resp">
+        <div class="label">Success (exit code 0)</div>
+<pre><code>{
+  "success": true,
+  "stdout": "...\n",
+  "stderr": "",
+  "exitCode": 0
+}</code></pre>
+      </div>
+      <div class="resp">
+        <div class="label">Failure (non-zero exit)</div>
+<pre><code>{
+  "success": false,
+  "stdout": "partial output...\n",
+  "stderr": "command not found\n",
+  "error": "Command failed: ...",
+  "exitCode": 127
+}</code></pre>
+      </div>
+      <div class="resp">
+        <div class="label">Bad request (no command)</div>
+<pre><code>400 { "error": "command or commands is required" }</code></pre>
+      </div>
+      <div class="resp">
+        <div class="label">Unauthorized (missing/invalid key)</div>
+<pre><code>401 { "error": "Invalid or missing API key" }</code></pre>
+      </div>
+    </section>
+
+    <!-- HEALTH -->
+    <section id="health">
+      <h2>GET /health</h2>
+      <p>No authentication required. Useful for load balancers, Docker healthchecks, and uptime monitors.</p>
+      <pre><code>curl http://localhost:8080/health</code></pre>
+      <pre><code>{ "status": "ok" }</code></pre>
+    </section>
+
+    <!-- INTEGRATE -->
+    <section id="integrate">
+      <h2>Integration</h2>
+      <p>Examples in common languages and tools. Replace <code>YOUR_API_KEY</code> and <code>http://localhost:8080</code> with your values.</p>
+
+      <div class="tabs" id="integrate-tabs">
+        <div class="tab-headers">
+          <button class="active" data-tab="curl">cURL</button>
+          <button data-tab="js">JavaScript</button>
+          <button data-tab="node">Node.js</button>
+          <button data-tab="python">Python</button>
+          <button data-tab="gha">GitHub Action</button>
+          <button data-tab="docker">Docker</button>
+        </div>
+
+        <div class="tab-panel active" data-panel="curl">
+          <h4>Single command</h4>
+<pre><code>curl http://localhost:8080/execute \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: YOUR_API_KEY" \
+  -d '{"command":"echo","args":["hello"]}'</code></pre>
+          <h4>Chained commands</h4>
+<pre><code>curl http://localhost:8080/execute \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: YOUR_API_KEY" \
+  -d '{"commands":["git pull","npm ci","npm run build"],"cwd":"/app"}'</code></pre>
+        </div>
+
+        <div class="tab-panel" data-panel="js">
+          <h4>Browser fetch</h4>
+<pre><code>const res = await fetch("http://localhost:8080/execute", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "X-API-Key": "YOUR_API_KEY"
+  },
+  body: JSON.stringify({
+    command: "echo",
+    args: ["hello from browser"]
+  })
+});
+const data = await res.json();
+console.log(data);</code></pre>
+          <div class="callout warn">
+            <strong>CORS:</strong> The browser origin must be listed in <code>allowedOrigins</code> for the response to be readable from JavaScript. Otherwise the browser blocks it.
+          </div>
+        </div>
+
+        <div class="tab-panel" data-panel="node">
+          <h4>Node.js (fetch)</h4>
+<pre><code>const res = await fetch("http://localhost:8080/execute", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "X-API-Key": process.env.WORKER_API_KEY
+  },
+  body: JSON.stringify({
+    commands: ["git pull", "npm ci", "npm test"],
+    cwd: "/home/user/project"
+  })
+});
+const result = await res.json();
+if (!result.success) {
+  console.error("Failed:", result.error);
+  process.exit(1);
+}
+console.log(result.stdout);</code></pre>
+        </div>
+
+        <div class="tab-panel" data-panel="python">
+          <h4>Python (requests)</h4>
+<pre><code>import requests
+
+resp = requests.post(
+    "http://localhost:8080/execute",
+    headers={
+        "Content-Type": "application/json",
+        "X-API-Key": "YOUR_API_KEY",
+    },
+    json={
+        "commands": ["git pull", "npm ci", "npm run build"],
+        "cwd": "/app",
+    },
+)
+data = resp.json()
+if data["success"]:
+    print(data["stdout"])
+else:
+    print(f"Failed (exit {data['exitCode']}): {data['error']}")
+    print(data["stderr"])</code></pre>
+          <h4>Python (stdlib urllib)</h4>
+<pre><code>import json, urllib.request
+
+req = urllib.request.Request(
+    "http://localhost:8080/execute",
+    data=json.dumps({"command": "uname", "args": ["-a"]}).encode(),
+    headers={
+        "Content-Type": "application/json",
+        "X-API-Key": "YOUR_API_KEY",
+    },
+)
+with urllib.request.urlopen(req) as r:
+    print(json.loads(r.read()))</code></pre>
+        </div>
+
+        <div class="tab-panel" data-panel="gha">
+          <h4>GitHub Actions step</h4>
+<pre><code>- name: Trigger remote build
+  run: |
+    curl -sSf http://your-worker-host:8080/execute \
+      -H "Content-Type: application/json" \
+      -H "X-API-Key: ${{ secrets.WORKER_API_KEY }}" \
+      -d '{"commands":["git pull","npm ci","npm run build"],"cwd":"/app"}'</code></pre>
+          <div class="callout">
+            <strong>Tip:</strong> Store the API key as a repository secret. Never hardcode it in the workflow file.
+          </div>
+        </div>
+
+        <div class="tab-panel" data-panel="docker">
+          <h4>Dockerfile</h4>
+<pre><code>FROM node:20-slim
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --omit=dev
+COPY dist/ ./dist/
+COPY config.json ./
+EXPOSE 8080
+CMD ["node", "dist/index.js"]</code></pre>
+          <h4>docker-compose.yml</h4>
+<pre><code>services:
+  worker:
+    build: .
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./config.json:/app/config.json:ro
+    restart: unless-stopped</code></pre>
+          <h4>Docker healthcheck</h4>
+<pre><code>HEALTHCHECK --interval=30s --timeout=5s \
+  CMD curl -f http://localhost:8080/health || exit 1</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECURITY -->
+    <section id="security">
+      <h2>Security</h2>
+      <div class="callout warn">
+        <strong>Important:</strong> This worker executes arbitrary shell commands. Treat it as a privileged service.
+      </div>
+      <ul>
+        <li><strong>Never expose it to the public internet</strong> without a reverse proxy, TLS, and network restrictions. It runs whatever command the authenticated caller sends.</li>
+        <li><strong>Rotate the placeholder keys.</strong> <code>config.json</code> ships with <code>change-me-key-*</code> — replace them before any real use.</li>
+        <li><strong>Restrict <code>allowedOrigins</code></strong> to only the domains that need to call it from a browser. Leaving <code>*</code> (the no-file default) allows any origin to receive CORS headers.</li>
+        <li><strong>Run as a non-root user</strong> in production so executed commands inherit least privilege.</li>
+        <li><strong>Keep API keys out of client code.</strong> In browser apps, proxy requests through your own backend rather than embedding the key in JavaScript.</li>
+        <li><strong>There is no command allowlist.</strong> Any authenticated key can run any command. If you need scoping, run multiple workers with different keys and filesystem isolation.</li>
+      </ul>
+    </section>
+
+    <!-- EXAMPLES -->
+    <section id="examples">
+      <h2>Full Examples</h2>
+
+      <h3>Deploy a Node app on push</h3>
+      <pre><code>curl -X POST http://localhost:8080/execute \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: $KEY" \
+  -d '{
+    "commands": [
+      "git fetch --all",
+      "git reset --hard origin/main",
+      "npm ci",
+      "npm run build",
+      "pm2 restart myapp"
+    ],
+    "cwd": "/var/www/myapp"
+  }'</code></pre>
+
+      <h3>Run a backup script with a timeout</h3>
+      <pre><code>curl -X POST http://localhost:8080/execute \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: $KEY" \
+  -d '{
+    "command": "/opt/scripts/backup.sh",
+    "args": ["--full", "--compress"],
+    "cwd": "/var/backups"
+  }'</code></pre>
+
+      <h3>Check system info</h3>
+      <pre><code>curl http://localhost:8080/execute \
+  -H "X-API-Key: $KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"command":"uname","args":["-a"]}'</code></pre>
+      <pre><code>{
+  "success": true,
+  "stdout": "Linux host 6.5.0-arch #1 SMP x86_64 GNU/Linux\n",
+  "stderr": "",
+  "exitCode": 0
+}</code></pre>
+    </section>
+
+    <!-- NOTES -->
+    <section id="notes">
+      <h2>Notes</h2>
+      <ul>
+        <li><strong>Single file:</strong> All server logic is in <code>src/index.ts</code>. There is no router, controller, or service layer split.</li>
+        <li><strong>No tests, lint, or CI.</strong> Don't assume <code>npm test</code> works — there is no test script.</li>
+        <li><strong><code>dist/</code> is a build artifact</strong> (gitignored). Don't edit it; edit <code>src/</code> and rebuild.</li>
+        <li><strong><code>index.html</code> at the repo root is unrelated.</strong> It's an untracked UI demo ("What-If Money Advisor") and is not served by the worker.</li>
+        <li><strong>TypeScript strict mode</strong> with <code>ES2022</code> target and <code>commonjs</code> modules. <code>resolveJsonModule</code> is enabled, though config is read via <code>fs</code> at runtime rather than imported.</li>
+        <li><strong>Args escaping:</strong> Single quotes are escaped as <code>'\''</code>. This handles most cases but is not a sandbox — the worker trusts the authenticated caller.</li>
+        <li><strong>Timeouts kill the child process</strong> via <code>child_process.exec</code>'s built-in <code>timeout</code> option. A timed-out command returns <code>success: false</code> with an error message.</li>
+      </ul>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+      <div class="row">
+        <div>
+          <div class="copy">© 2026 gh-worker. All rights reserved.</div>
+          <div class="meta">Licensed under the MIT License. Built with Express 5 &amp; TypeScript.</div>
+        </div>
+        <div class="links">
+          <a href="#overview">Top</a>
+          <a href="#quickstart">Quick Start</a>
+          <a href="#integrate">Integration</a>
+          <a href="#security">Security</a>
+        </div>
+      </div>
+    </footer>
+
+  </main>
+</div>
+
+<script>
+  // tab switching
+  document.querySelectorAll('.tabs').forEach(group => {
+    const headers = group.querySelectorAll('.tab-headers button');
+    const panels = group.querySelectorAll('.tab-panel');
+    headers.forEach(btn => {
+      btn.addEventListener('click', () => {
+        headers.forEach(b => b.classList.remove('active'));
+        panels.forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        group.querySelector(`.tab-panel[data-panel="${btn.dataset.tab}"]`).classList.add('active');
+      });
+    });
+  });
+
+  // sidebar active link on scroll
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('.sidebar a');
+  window.addEventListener('scroll', () => {
+    let current = '';
+    sections.forEach(s => {
+      if (window.scrollY >= s.offsetTop - 100) current = s.id;
+    });
+    navLinks.forEach(a => {
+      a.classList.toggle('active', a.getAttribute('href') === '#' + current);
+    });
+  });
+</script>
+</body>
+</html>
